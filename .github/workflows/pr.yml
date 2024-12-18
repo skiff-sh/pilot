@@ -4,7 +4,6 @@ on:
     branches-ignore:
       - main
       - master
-
 jobs:
   go-test:
     name: Go test
