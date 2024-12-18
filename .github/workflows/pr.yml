@@ -10,7 +10,7 @@ jobs:
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
     secrets: inherit
     with:
-      test-dirs: './server'
+      test-dirs: './server/pkg'
       test-mindepth: '1'
   buf-lint:
     name: Buf lint
