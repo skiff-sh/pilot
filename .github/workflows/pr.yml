@@ -10,6 +10,8 @@ jobs:
     name: Go test
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
     secrets: inherit
+    with:
+      test-mindepth: 1
   buf-lint:
     name: Buf lint
     runs-on: ubuntu-latest
