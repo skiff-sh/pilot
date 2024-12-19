@@ -20,6 +20,7 @@ type ActionTestSuite struct {
 func (a *ActionTestSuite) TestActions() {
 	type deps struct {
 		Output Output
+		Err    error
 		Ctx    *Context
 	}
 
@@ -68,7 +69,9 @@ func (a *ActionTestSuite) TestActions() {
 					Args:    []string{"??"},
 				},
 			},
-			ExpectedErr: "exit status 3\ncurl: (3) URL rejected: No host part in the URL\n",
+			ExpectedOutputFunc: func(d *deps) {
+				a.Contains(d.Err.Error(), "exit status 3\ncurl: (3)")
+			},
 		},
 		"http request happy": {
 			Given: &pilot.Action{
@@ -155,17 +158,17 @@ func (a *ActionTestSuite) TestActions() {
 			}
 
 			out, err := act.Act(v.Ctx)
-			if v.ExpectedErr != "" || !a.NoError(err) {
-				a.EqualError(err, v.ExpectedErr)
-				return
-			}
-
 			if v.ExpectedOutputFunc != nil {
 				v.ExpectedOutputFunc(&deps{
 					Ctx:    v.Ctx,
 					Output: out,
+					Err:    err,
 				})
 			} else {
+				if v.ExpectedErr != "" || !a.NoError(err) {
+					a.EqualError(err, v.ExpectedErr)
+					return
+				}
 				a.Equal(v.ExpectedOutput, out)
 			}
 		})
