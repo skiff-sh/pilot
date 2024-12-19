@@ -12,6 +12,7 @@ jobs:
     with:
       test-dirs: './server/pkg'
       test-mindepth: '1'
+      testcoverage-config-path: './.testcoverage.yml'
   buf-lint:
     name: Buf lint
     runs-on: ubuntu-latest
