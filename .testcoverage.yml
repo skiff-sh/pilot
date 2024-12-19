@@ -1,0 +1,4 @@
+exclude:
+  paths:
+    - \.pb\.go$
+    - \.pb\.validate\.go$

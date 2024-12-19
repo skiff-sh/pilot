@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package skiff.pilot;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/skiff-sh/pilot/api/go/pilot";
+
+service PilotService {
+  rpc CreateBehavior(CreateBehavior.Request) returns (CreateBehavior.Response);
+  rpc ProvokeBehavior(ProvokeBehavior.Request) returns (ProvokeBehavior.Response);
+}
+
+message CreateBehavior {
+  message Request {
+    Behavior behavior = 1;
+  }
+
+  message Response {}
+}
+
+message ProvokeBehavior {
+  message Request {
+    // The name of the behavior
+    string name = 1;
+  }
+
+  message Response {
+    google.protobuf.Struct body = 1;
+  }
+}
+
+message Behavior {
+  repeated Tendency tendencies = 1 [(buf.validate.field).repeated.min_items = 1];
+  // The referential name of the Behavior.
+  string name = 2 [(buf.validate.field).required = true];
+}
+
+message Tendency {
+  Action action = 1 [(buf.validate.field).required = true];
+  // Trigger this behavior if a truthy statement is set here.
+  optional string if = 2;
+  // Referential ID.
+  optional string id = 3;
+}
+
+// Polymorphic message representing an action to be performed.
+message Action {
+  // Sends an HTTP request.
+  message HTTPRequest {
+    string url = 1 [(buf.validate.field).required = true];
+    string method = 2 [(buf.validate.field).required = true];
+    map<string, string> headers = 3;
+    string body = 4;
+  }
+
+  // Responds with a gRPC status.
+  message SetStatus {
+    // A gRPC status code -> https://grpc.io/docs/guides/status-codes/
+    uint32 code = 1;
+    string message = 2;
+  }
+
+  // Sets a field in the final response to the caller of the behavior.
+  message SetResponseField {
+    string from = 1 [(buf.validate.field).required = true];
+    string to = 2 [(buf.validate.field).required = true];
+  }
+
+  message Exec {
+    string command = 1 [(buf.validate.field).required = true];
+    repeated string args = 2;
+    map<string, string> env_vars = 3 [json_name = "env_vars"];
+    string working_dir = 4 [json_name = "working_dir"];
+  }
+
+  // Wait for a specified amount of time.
+  optional google.protobuf.Duration wait = 1;
+  // Dispatch HTTP request. Outputs an HTTP Response.
+  optional HTTPRequest http_request = 2 [json_name = "http_request"];
+  // Set the status to send in the response to the behavior. If not called, defaults
+  // to code OK.
+  optional SetStatus set_status = 3 [json_name = "set_status"];
+  // Set a field on the final response object.
+  optional SetResponseField set_response_field = 4 [json_name = "set_response_field"];
+  // Perform a shell command.
+  optional Exec exec = 5;
+}
+
+// A polymorphic message to represent the outputs of actions.
+message Output {
+  message HTTPResponse {
+    int32 status = 1;
+    // If the response is a json val, it is unmarshalled into a generic map.
+    google.protobuf.Struct body = 2;
+    string proto = 3;
+    int32 proto_major = 4 [json_name = "proto_major"];
+    int32 proto_minor = 5 [json_name = "proto_minor"];
+    // The official HTTP spec allows for list of values but we're just going to support
+    // the first one.
+    map<string, string> headers = 6;
+    int64 content_length = 7 [json_name = "content_length"];
+    bytes body_raw = 8 [json_name = "body_raw"];
+  }
+
+  message ExecOutput {
+    string stdout = 1;
+    string stderr = 2;
+    int32 exit_code = 3 [json_name = "exit_code"];
+  }
+
+  // Set if the action was an HTTP request.
+  optional HTTPResponse http_response = 1 [json_name = "http_response"];
+  // Set if the action was an exec.
+  optional ExecOutput exec_output = 2 [json_name = "exec_output"];
+}

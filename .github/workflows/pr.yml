@@ -9,3 +9,17 @@ jobs:
     name: Go test
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
     secrets: inherit
+    with:
+      test-dirs: './server/pkg'
+      test-mindepth: '1'
+      testcoverage-config-path: './.testcoverage.yml'
+  buf-lint:
+    name: Buf lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: bufbuild/buf-setup-action@v1
+      - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: proto
