@@ -13,7 +13,7 @@ import (
 type Data map[string]any
 
 func (d Data) ToProto() *structpb.Struct {
-	v, _ := structpb.NewStruct(d)
+	v, _ := structpb.NewStruct(stripAliases(d))
 	return v
 }
 
@@ -62,18 +62,6 @@ func (d Data) traverse(dots []string, create bool) (top Data, key string) {
 		temp = q.(Data)
 	}
 	return temp.traverse(dots[1:], create)
-}
-
-// Merge merges all Data into a singular where the last
-// Data has highest precedence.
-func Merge(d ...Data) Data {
-	out := Data{}
-	for _, v := range d {
-		for k, val := range v {
-			out[k] = val
-		}
-	}
-	return out
 }
 
 // Unmarshal is a generic func that will unmarshal any type into Data.
@@ -139,4 +127,19 @@ func unmarshalJSON(msg any) (Data, error) {
 
 	m := map[string]any{}
 	return m, json.Unmarshal(b, &m)
+}
+
+func stripAliases(d Data) map[string]any {
+	out := map[string]any{}
+	for k, v := range d {
+		switch typ := v.(type) {
+		case Data:
+			out[k] = stripAliases(typ)
+		case map[string]any:
+			out[k] = stripAliases(typ)
+		default:
+			out[k] = v
+		}
+	}
+	return out
 }

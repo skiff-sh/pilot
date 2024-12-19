@@ -2,7 +2,6 @@ package template
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
@@ -70,29 +69,6 @@ func (f FieldExpressions) Apply(m proto.Message, d Data) error {
 		switch field.Kind() {
 		case protoreflect.StringKind:
 			ref.Set(field, protoreflect.ValueOfString(out))
-		case protoreflect.BytesKind:
-			ref.Set(field, protoreflect.ValueOfBytes([]byte(out)))
-		case protoreflect.BoolKind:
-			b, _ := strconv.ParseBool(out)
-			ref.Set(field, protoreflect.ValueOfBool(b))
-		case protoreflect.Int32Kind:
-			b, _ := strconv.ParseInt(out, 10, 32)
-			ref.Set(field, protoreflect.ValueOfInt32(int32(b)))
-		case protoreflect.Int64Kind:
-			b, _ := strconv.ParseInt(out, 10, 64)
-			ref.Set(field, protoreflect.ValueOfInt32(int32(b)))
-		case protoreflect.Uint32Kind:
-			b, _ := strconv.ParseUint(out, 10, 32)
-			ref.Set(field, protoreflect.ValueOfUint32(uint32(b)))
-		case protoreflect.Uint64Kind:
-			b, _ := strconv.ParseUint(out, 10, 64)
-			ref.Set(field, protoreflect.ValueOfUint64(b))
-		case protoreflect.FloatKind:
-			b, _ := strconv.ParseFloat(out, 32)
-			ref.Set(field, protoreflect.ValueOfFloat32(float32(b)))
-		case protoreflect.DoubleKind:
-			b, _ := strconv.ParseFloat(out, 64)
-			ref.Set(field, protoreflect.ValueOfFloat64(b))
 		}
 	}
 	return nil

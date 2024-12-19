@@ -16,6 +16,7 @@ var _ pilot.PilotServiceServer = &Controller{}
 func NewController(val *protovalidate.Validator) *Controller {
 	out := &Controller{
 		Behaviors: cmap.New[*behavior.Behavior](),
+		Validator: val,
 	}
 	return out
 }
