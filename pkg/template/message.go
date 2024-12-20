@@ -66,8 +66,7 @@ func (f FieldExpressions) Apply(m proto.Message, d Data) error {
 
 		out := temp.Eval(d)
 		out = strings.ToLower(strings.TrimSpace(out))
-		switch field.Kind() {
-		case protoreflect.StringKind:
+		if field.Kind() == protoreflect.StringKind {
 			ref.Set(field, protoreflect.ValueOfString(out))
 		}
 	}
