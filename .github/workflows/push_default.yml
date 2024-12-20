@@ -1,0 +1,23 @@
+name: Build and push image
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - '**.go'
+      - go.mod
+      - go.sum
+
+jobs:
+  docker:
+    name: Build and push
+    uses: skiff-sh/gh-actions/.github/workflows/build-and-push.yml@master
+    with:
+      image-description: 'A generic server app that executes defined behavior.'
+      images: |
+        ghcr.io/skiff-sh/pilot
+      tags: |
+        type=sha
+        type=raw,value=latest
