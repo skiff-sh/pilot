@@ -16,8 +16,10 @@ jobs:
     uses: skiff-sh/gh-actions/.github/workflows/build-and-push.yml@master
     secrets: inherit
     permissions:
+      contents: read
       packages: write
-      contents: write
+      attestations: write
+      id-token: write
     with:
       image-description: 'A generic server app that executes defined behavior.'
       push: true
