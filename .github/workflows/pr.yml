@@ -7,11 +7,13 @@ on:
 jobs:
   go-test:
     name: Go test
-    uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
+    uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@feat/go_test_skip_dirs
     secrets: inherit
     with:
       test-dirs: './server/pkg ./pkg'
       test-mindepth: '1'
+      test-skip-dirs: '*mocks*'
+      workflow-ref: 'feat/go_test_skip_dirs'
   buf-lint:
     name: Buf lint
     runs-on: ubuntu-latest
