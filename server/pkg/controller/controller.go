@@ -33,7 +33,6 @@ func (c *Controller) CreateBehavior(_ context.Context, request *pilot.CreateBeha
 	if err != nil {
 		return nil, err
 	}
-
 	beh, err := behavior.Compile(request.GetBehavior())
 	if err != nil {
 		return nil, err
