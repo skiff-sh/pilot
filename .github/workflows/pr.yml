@@ -17,7 +17,6 @@ jobs:
       test-dirs: './server/pkg ./pkg'
       test-mindepth: '1'
       test-skip-dirs: '*mocks*'
-      workflow-ref: 'feat/go_test_skip_dirs'
   buf-lint:
     name: Buf lint
     runs-on: ubuntu-latest
