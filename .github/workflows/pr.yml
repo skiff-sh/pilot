@@ -7,7 +7,7 @@ on:
 jobs:
   go-test:
     name: Go test
-    uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@feat/go_test_skip_dirs
+    uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
     secrets: inherit
     permissions:
       contents: read
