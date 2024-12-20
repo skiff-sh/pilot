@@ -15,7 +15,7 @@ service PilotService {
 
 message CreateBehavior {
   message Request {
-    Behavior behavior = 1;
+    Behavior behavior = 1 [(buf.validate.field).required = true];
   }
 
   message Response {}

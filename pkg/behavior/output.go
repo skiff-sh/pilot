@@ -2,15 +2,11 @@ package behavior
 
 import (
 	pilot "github.com/skiff-sh/pilot/api/go"
-	"github.com/skiff-sh/pilot/server/pkg/template"
+	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
+	"github.com/skiff-sh/pilot/pkg/template"
 )
 
-type Output interface {
-	ToAPI() *pilot.Output
-	ToRaw() template.Data
-}
-
-var _ Output = &HTTPResponseOutput{}
+var _ behaviortype.Output = &HTTPResponseOutput{}
 
 type HTTPResponseOutput struct {
 	*pilot.Output_HTTPResponse
@@ -25,7 +21,7 @@ func (h *HTTPResponseOutput) ToAPI() *pilot.Output {
 	return &pilot.Output{HttpResponse: h.Output_HTTPResponse}
 }
 
-var _ Output = &ExecOutput{}
+var _ behaviortype.Output = &ExecOutput{}
 
 type ExecOutput struct {
 	*pilot.Output_ExecOutput

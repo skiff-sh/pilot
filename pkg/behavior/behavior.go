@@ -5,14 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
+	"github.com/skiff-sh/pilot/pkg/template"
+
 	pilot "github.com/skiff-sh/pilot/api/go"
-	"github.com/skiff-sh/pilot/server/pkg/template"
 )
 
 func Compile(beh *pilot.Behavior) (*Behavior, error) {
 	out := &Behavior{
 		Name:       beh.Name,
-		Tendencies: make([]Tendency, 0, len(beh.Tendencies)),
+		Tendencies: make([]*Tendency, 0, len(beh.Tendencies)),
 	}
 	for d, tend := range beh.Tendencies {
 		t := new(Tendency)
@@ -24,11 +26,12 @@ func Compile(beh *pilot.Behavior) (*Behavior, error) {
 			t.Cond = expr
 		}
 
-		act, err := CompileAction(tend.GetId(), tend.Action)
+		act, err := CompileAction(tend.GetId(), tend.GetAction())
 		if err != nil {
 			return nil, errors.Join(fmt.Errorf("tendency %d has an invalid action", d), err)
 		}
 		t.Action = act
+		out.Tendencies = append(out.Tendencies, t)
 	}
 
 	return out, nil
@@ -36,11 +39,15 @@ func Compile(beh *pilot.Behavior) (*Behavior, error) {
 
 type Behavior struct {
 	Name       string
-	Tendencies []Tendency
+	Tendencies []*Tendency
 }
 
-func (b *Behavior) Provoke(ctx context.Context) (*Response, error) {
-	c := newContext(ctx)
+func (b *Behavior) GetName() string {
+	return b.Name
+}
+
+func (b *Behavior) Provoke(ctx context.Context) (*behaviortype.Response, error) {
+	c := behaviortype.NewContext(ctx)
 	for _, v := range b.Tendencies {
 		out, err := v.Act(c)
 		if err != nil {
@@ -52,21 +59,21 @@ func (b *Behavior) Provoke(ctx context.Context) (*Response, error) {
 		}
 
 		raw := out.ToRaw()
-		if ref, ok := v.Action.(Referential); ok && ref.GetID() != "" {
+		if ref, ok := v.Action.(behaviortype.Referential); ok && ref.GetID() != "" {
 			c.Outputs.Set(ref.GetID(), raw)
 		}
 	}
 	return c.Response, nil
 }
 
-var _ Action = &Tendency{}
+var _ behaviortype.Action = &Tendency{}
 
 type Tendency struct {
-	Action Action
+	Action behaviortype.Action
 	Cond   template.Expression
 }
 
-func (t *Tendency) Act(c *Context) (out Output, err error) {
+func (t *Tendency) Act(c *behaviortype.Context) (out behaviortype.Output, err error) {
 	if t.Cond != nil && !template.IsTruthy(t.Cond.Eval(c.Outputs)) {
 		return nil, nil
 	}

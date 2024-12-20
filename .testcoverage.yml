@@ -1,4 +1,3 @@
 exclude:
   paths:
-    - \.pb\.go$
-    - \.pb\.validate\.go$
+    - mock_*.go

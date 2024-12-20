@@ -1,10 +1,11 @@
 package template
 
 import (
+	"testing"
+
 	test2 "github.com/skiff-sh/pilot/api/go/test"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/types/known/structpb"
-	"testing"
 )
 
 type TemplateTestSuite struct {

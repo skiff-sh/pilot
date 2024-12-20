@@ -9,24 +9,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
+	"github.com/skiff-sh/pilot/pkg/httptype"
+	"github.com/skiff-sh/pilot/pkg/template"
+
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config"
 	pilot "github.com/skiff-sh/pilot/api/go"
-	"github.com/skiff-sh/pilot/server/pkg/httptype"
-	"github.com/skiff-sh/pilot/server/pkg/template"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type Action interface {
-	Act(c *Context) (out Output, err error)
-}
-
-type Referential interface {
-	GetID() string
-}
-
-func CompileAction(id string, b *pilot.Action) (Action, error) {
+func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 	switch {
 	case b.Exec != nil:
 		out := &Exec{
@@ -79,13 +73,13 @@ func CompileAction(id string, b *pilot.Action) (Action, error) {
 			Spec:        b.SetResponseField,
 		}, nil
 	default:
-		return nil, errors.New("invalid action")
+		return nil, errors.New("unknown or missing action")
 	}
 }
 
 var (
-	_ Action      = &HTTPRequest{}
-	_ Referential = &HTTPRequest{}
+	_ behaviortype.Action      = &HTTPRequest{}
+	_ behaviortype.Referential = &HTTPRequest{}
 )
 
 type HTTPRequest struct {
@@ -99,7 +93,7 @@ func (h *HTTPRequest) GetID() string {
 	return h.ID
 }
 
-func (h *HTTPRequest) Act(_ *Context) (Output, error) {
+func (h *HTTPRequest) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
 	resp, err := h.Client.Do(h.Req)
 	if err != nil {
 		return nil, err
@@ -143,25 +137,25 @@ func (h *HTTPRequest) Act(_ *Context) (Output, error) {
 	return &HTTPResponseOutput{out}, nil
 }
 
-var _ Action = &SetStatus{}
+var _ behaviortype.Action = &SetStatus{}
 
 type SetStatus struct {
 	Spec *pilot.Action_SetStatus
 }
 
-func (s *SetStatus) Act(c *Context) (Output, error) {
+func (s *SetStatus) Act(c *behaviortype.Context) (behaviortype.Output, error) {
 	c.Response.Status = status.New(codes.Code(s.Spec.Code), s.Spec.Message)
 	return nil, nil
 }
 
-var _ Action = &SetResponseField{}
+var _ behaviortype.Action = &SetResponseField{}
 
 type SetResponseField struct {
 	Expressions template.FieldExpressions
 	Spec        *pilot.Action_SetResponseField
 }
 
-func (s *SetResponseField) Act(c *Context) (Output, error) {
+func (s *SetResponseField) Act(c *behaviortype.Context) (behaviortype.Output, error) {
 	err := s.Expressions.Apply(s.Spec, c.Outputs)
 	if err != nil {
 		return nil, err
@@ -173,8 +167,8 @@ func (s *SetResponseField) Act(c *Context) (Output, error) {
 }
 
 var (
-	_ Action      = &Exec{}
-	_ Referential = &Exec{}
+	_ behaviortype.Action      = &Exec{}
+	_ behaviortype.Referential = &Exec{}
 )
 
 type Exec struct {
@@ -188,7 +182,7 @@ func (e *Exec) GetID() string {
 	return e.ID
 }
 
-func (e *Exec) Act(_ *Context) (Output, error) {
+func (e *Exec) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
 	err := e.Cmd.Run()
 	out := &pilot.Output_ExecOutput{
 		Stdout: e.Stdout.String(),
@@ -206,7 +200,7 @@ func (e *Exec) Act(_ *Context) (Output, error) {
 	return &ExecOutput{Output_ExecOutput: out}, err
 }
 
-var _ Action = &Wait{}
+var _ behaviortype.Action = &Wait{}
 
 type Wait struct {
 	Dur time.Duration
@@ -215,7 +209,7 @@ type Wait struct {
 // Used for testing.
 var sleeperFunc = time.Sleep
 
-func (w *Wait) Act(_ *Context) (Output, error) {
+func (w *Wait) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
 	sleeperFunc(w.Dur)
 	return nil, nil
 }

@@ -7,6 +7,7 @@ WORKDIR /go/app
 COPY go.mod go.mod
 COPY go.sum go.sum
 COPY server/ server/
+COPY pkg/ pkg/
 COPY api/go/ api/go/
 
 WORKDIR server

@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
+	"github.com/skiff-sh/pilot/pkg/template"
+
 	pilot "github.com/skiff-sh/pilot/api/go"
-	"github.com/skiff-sh/pilot/server/pkg/template"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -19,9 +21,9 @@ type ActionTestSuite struct {
 
 func (a *ActionTestSuite) TestActions() {
 	type deps struct {
-		Output Output
+		Output behaviortype.Output
 		Err    error
-		Ctx    *Context
+		Ctx    *behaviortype.Context
 	}
 
 	sleeperCalled := time.Duration(0)
@@ -30,9 +32,9 @@ func (a *ActionTestSuite) TestActions() {
 	}
 
 	type test struct {
-		Ctx                *Context
+		Ctx                *behaviortype.Context
 		Given              *pilot.Action
-		ExpectedOutput     Output
+		ExpectedOutput     behaviortype.Output
 		ExpectedOutputFunc func(d *deps)
 		ID                 string
 		ExpectedErr        string
@@ -127,9 +129,9 @@ func (a *ActionTestSuite) TestActions() {
 					To:   "flerp",
 				},
 			},
-			Ctx: &Context{
+			Ctx: &behaviortype.Context{
 				Outputs:  template.Data{"derp": 1},
-				Response: &Response{Body: make(template.Data)},
+				Response: &behaviortype.Response{Body: make(template.Data)},
 			},
 			ExpectedOutputFunc: func(d *deps) {
 				a.Equal(d.Ctx.Response.Body["flerp"], 1)
@@ -154,7 +156,7 @@ func (a *ActionTestSuite) TestActions() {
 			}
 
 			if v.Ctx == nil {
-				v.Ctx = newContext(context.TODO())
+				v.Ctx = behaviortype.NewContext(context.TODO())
 			}
 
 			out, err := act.Act(v.Ctx)
