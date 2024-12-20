@@ -19,6 +19,7 @@ jobs:
       packages: write
     with:
       image-description: 'A generic server app that executes defined behavior.'
+      push: true
       images: |
         ghcr.io/skiff-sh/pilot
       tags: |
