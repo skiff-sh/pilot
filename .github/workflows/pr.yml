@@ -9,6 +9,8 @@ jobs:
     name: Go test
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@feat/go_test_skip_dirs
     secrets: inherit
+    permissions:
+      contents: read
     with:
       test-dirs: './server/pkg ./pkg'
       test-mindepth: '1'
