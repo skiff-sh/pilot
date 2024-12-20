@@ -24,7 +24,7 @@ jobs:
       image-description: 'A generic server app that executes defined behavior.'
       push: true
       images: |
-        ghcr.io/skiff-sh/pilot
+        ghcr.io/${{ github.repository }}
       tags: |
         type=sha
         type=raw,value=latest
