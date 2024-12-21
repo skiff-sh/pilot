@@ -14,7 +14,8 @@ jobs:
   docker:
     name: Build and push
     uses: skiff-sh/gh-actions/.github/workflows/build-and-push.yml@master
-    secrets: inherit
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: read
       packages: write
