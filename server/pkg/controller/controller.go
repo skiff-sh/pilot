@@ -20,6 +20,7 @@ func NewController(val protovalidatetype.Validator) *Controller {
 		Behaviors: cmap.New[behaviortype.Interface](),
 		Validator: val,
 	}
+
 	return out
 }
 
