@@ -53,7 +53,7 @@ message Action {
     string url = 1 [(buf.validate.field).required = true];
     string method = 2 [(buf.validate.field).required = true];
     map<string, string> headers = 3;
-    string body = 4;
+    bytes body = 4;
   }
 
   // Responds with a gRPC status.
