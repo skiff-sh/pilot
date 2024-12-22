@@ -53,7 +53,6 @@ func (b *Behavior) Provoke(ctx context.Context) (*behaviortype.Response, error) 
 		if err != nil {
 			return nil, err
 		}
-
 		if out == nil {
 			continue
 		}
