@@ -6,6 +6,7 @@ import (
 	"github.com/skiff-sh/ksuite"
 	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/skiff-sh/pilot/server/pkg/config"
+	"github.com/skiff-sh/serverapp"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"testing"
@@ -23,7 +24,7 @@ func (t *TestPilotSuite) TestDeploy() {
 	if !t.NoError(err) {
 		return
 	}
-	cc, err := grpc.NewClient(fmt.Sprintf("localhost:%d", t.Cluster.IngressPort))
+	cc, err := grpc.NewClient(fmt.Sprintf("localhost:%d", t.Cluster.IngressPort), serverapp.DefaultDialOpts()...)
 	if !t.NoError(err) {
 		return
 	}

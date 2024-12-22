@@ -2,6 +2,7 @@ package pilot
 
 import (
 	"context"
+	"fmt"
 	baseconfig "github.com/skiff-sh/config"
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/server/pkg/config"
@@ -22,8 +23,11 @@ var (
 	DefaultContainerPortName = "main"
 	grpcProbe                = &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
-			GRPC: &corev1.GRPCAction{
-				Port: DefaultContainerPort,
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"/grpc_health_probe",
+					fmt.Sprintf("-addr=localhost:%d", DefaultContainerPort),
+				},
 			},
 		},
 	}
