@@ -7,8 +7,40 @@ import (
 	pilot "github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
 	"time"
 )
+
+type Client interface {
+	NewBehavior() NameBehaviorBuilder
+	Provoke(ctx context.Context, name string) (*structpb.Struct, error)
+}
+
+func New(cl pilot.PilotServiceClient) Client {
+	return &client{
+		Cl: cl,
+	}
+}
+
+type client struct {
+	Cl pilot.PilotServiceClient
+}
+
+func (c *client) NewBehavior() NameBehaviorBuilder {
+	return &createBehaviorBuilder{
+		Req: &pilot.Behavior{},
+		Cl:  c.Cl,
+	}
+}
+
+func (c *client) Provoke(ctx context.Context, name string) (*structpb.Struct, error) {
+	out, err := c.Cl.ProvokeBehavior(ctx, &pilot.ProvokeBehavior_Request{Name: name})
+	if err != nil {
+		return nil, err
+	}
+
+	return out.Body, nil
+}
 
 type NameBehaviorBuilder interface {
 	Name(n string) TendencyBuilder

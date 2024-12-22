@@ -14,6 +14,8 @@ import (
 )
 
 var (
+	DefaultImage             = "ghcr.io/skiff-sh/pilot"
+	DefaultTag               = "latest"
 	DefaultName              = "pilot"
 	DefaultNamespace         = "pilot"
 	DefaultContainerPort     = int32(8080)
@@ -27,13 +29,19 @@ var (
 	}
 )
 
-func Deploy(ctx context.Context, cl kubernetes.Interface, image string, conf *config.Config) error {
+func Deploy(ctx context.Context, cl kubernetes.Interface, conf *config.Config) error {
 	evs := baseconfig.ToEnvVars("pilot", conf)
 	ing := newIngress(DefaultName, DefaultNamespace)
 	svc := newService(DefaultName, DefaultNamespace)
-	dep := newDeployment(DefaultName, DefaultNamespace, image, evs)
+	dep := newDeployment(DefaultName, DefaultNamespace, DefaultImage+":"+DefaultTag, evs)
+	ns := newNamespace(DefaultName)
 	co := metav1.CreateOptions{}
 	var err error
+	ns, err = cl.CoreV1().Namespaces().Create(ctx, ns, co)
+	if err != nil {
+		return err
+	}
+
 	dep, err = cl.AppsV1().Deployments(DefaultNamespace).Create(ctx, dep, co)
 	if err != nil {
 		return err
@@ -50,6 +58,16 @@ func Deploy(ctx context.Context, cl kubernetes.Interface, image string, conf *co
 	}
 
 	return nil
+}
+
+func newNamespace(name string) *corev1.Namespace {
+	out := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	return out
 }
 
 func newIngress(name, namespace string) *networkingv1.Ingress {
