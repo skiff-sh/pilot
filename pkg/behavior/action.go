@@ -40,12 +40,15 @@ func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 		return out, nil
 	case b.HttpRequest != nil:
 		var body io.Reader
-		if b.HttpRequest.Body != "" {
-			body = strings.NewReader(b.HttpRequest.Body)
+		if len(b.HttpRequest.Body) > 0 {
+			body = bytes.NewReader(b.HttpRequest.Body)
 		}
 		req, err := http.NewRequest(b.HttpRequest.Method, b.HttpRequest.Url, body)
 		if err != nil {
 			return nil, err
+		}
+		for k, v := range b.HttpRequest.Headers {
+			req.Header.Set(k, v)
 		}
 
 		out := &HTTPRequest{

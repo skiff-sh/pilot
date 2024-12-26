@@ -2,13 +2,15 @@ package pilot
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config/ptr"
 	pilot "github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"time"
 )
 
 type Client interface {
@@ -84,6 +86,15 @@ func WithHTTPHeaders(m map[string]string) HTTPRequestOpt {
 	}
 }
 
+func WithHTTPHeader(key, val string) HTTPRequestOpt {
+	return func(r *pilot.Action_HTTPRequest) {
+		if r.Headers == nil {
+			r.Headers = make(map[string]string)
+		}
+		r.Headers[key] = val
+	}
+}
+
 func WithHTTPMethod(m string) HTTPRequestOpt {
 	return func(r *pilot.Action_HTTPRequest) {
 		r.Method = m
@@ -119,9 +130,11 @@ func WithExecDir(d string) ExecOpt {
 	}
 }
 
-var _ NameBehaviorBuilder = &createBehaviorBuilder{}
-var _ TendencyBuilder = &createBehaviorBuilder{}
-var _ CreateBehaviorSender = &createBehaviorBuilder{}
+var (
+	_ NameBehaviorBuilder  = &createBehaviorBuilder{}
+	_ TendencyBuilder      = &createBehaviorBuilder{}
+	_ CreateBehaviorSender = &createBehaviorBuilder{}
+)
 
 type createBehaviorBuilder struct {
 	Req *pilot.Behavior
@@ -141,9 +154,11 @@ func (c *createBehaviorBuilder) Name(n string) TendencyBuilder {
 	return c
 }
 
-var _ TendencyActionBuilder = &tendencyBuilder{}
-var _ TendencyAdder = &tendencyBuilder{}
-var _ TendencyFieldBuilder = &tendencyBuilder{}
+var (
+	_ TendencyActionBuilder = &tendencyBuilder{}
+	_ TendencyAdder         = &tendencyBuilder{}
+	_ TendencyFieldBuilder  = &tendencyBuilder{}
+)
 
 type tendencyBuilder struct {
 	Parent   *createBehaviorBuilder
@@ -177,7 +192,8 @@ func (t *tendencyBuilder) Wait(d time.Duration) TendencyAdder {
 
 func (t *tendencyBuilder) HTTPRequest(url string, o ...HTTPRequestOpt) TendencyAdder {
 	t.Tendency.Action.HttpRequest = &pilot.Action_HTTPRequest{
-		Url: url,
+		Url:    url,
+		Method: http.MethodGet,
 	}
 	for _, v := range o {
 		v(t.Tendency.Action.HttpRequest)
