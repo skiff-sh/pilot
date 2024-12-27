@@ -27,10 +27,11 @@ jobs:
         with:
           host: ${{ steps.registry.outputs.host }}
           image-name: 'pilot'
+          image-base: ${{ steps.registry.outputs.image-base }}
       - name: E2E test
         working-directory: e2e/pilot
         env:
           K3D_REGISTRY: ${{ steps.registry.outputs.host }}
-          PILOT_TEST_IMAGE: ${{ steps.build.outputs.tag }}
+          PILOT_TEST_IMAGE: ${{ steps.build.outputs.image }}
         run: |
           go test -v

@@ -9,6 +9,7 @@ RUN wget https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/$
     chmod +x grpc_health_probe
 
 RUN mkdir -p /go/app
+
 WORKDIR /go/app
 
 COPY go.mod go.mod
