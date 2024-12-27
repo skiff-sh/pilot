@@ -343,8 +343,10 @@ github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/skiff-sh/config v0.0.0-20241218203813-c1c6448383ea h1:mUzrcJR4LSsJLdCofaOVhjJ+eaylnsqON0cwEubgna0=
 github.com/skiff-sh/config v0.0.0-20241218203813-c1c6448383ea/go.mod h1:wyev5UmLf9Tps6F4uWB0TPxZO4jxN3NRGFRdo7GaSdc=
-github.com/skiff-sh/serverapp v0.0.0-20241218203818-57806f9f9870 h1:u9C8bVvnsrl3JskKg0yq4IMsFxhbob6yXkrJcmoEfVQ=
-github.com/skiff-sh/serverapp v0.0.0-20241218203818-57806f9f9870/go.mod h1:Sn/RSIvOgoxMcwGuu6YJDRp0t5NpagsEMhTB15+eYKg=
+github.com/skiff-sh/ksuite v0.0.0-20241227044845-54e690d3f40e h1:bnOiMDGPJBXU0Rn1qZKcylq2ANdB9h/YsK4+/NZCol0=
+github.com/skiff-sh/ksuite v0.0.0-20241227044845-54e690d3f40e/go.mod h1:4xjHQrRmq2EgvipZTuwFpHhvSkVK2eDZq1nEGq9LxOE=
+github.com/skiff-sh/kube v0.0.0-20241227045700-53e479efa02a h1:0VdTZJgTj3YLB75EaM+0uZgEUHUtXbzn6AXk5FIRI4Q=
+github.com/skiff-sh/kube v0.0.0-20241227045700-53e479efa02a/go.mod h1:ZOGcvRnN/+MqVcMJyZlHYpgWaL4g+9SGcDgZd1Y4x+E=
 github.com/skiff-sh/serverapp v0.0.0-20241223210610-75f704a4a2d6 h1:MsB9MVOpjOOEwPy6YHgJmzG3feJ9mnSz4beBRoEaJNU=
 github.com/skiff-sh/serverapp v0.0.0-20241223210610-75f704a4a2d6/go.mod h1:Sn/RSIvOgoxMcwGuu6YJDRp0t5NpagsEMhTB15+eYKg=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=

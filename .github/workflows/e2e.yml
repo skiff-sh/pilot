@@ -1,0 +1,35 @@
+name: PR
+on:
+  push:
+    paths:
+      - '**.go'
+      - Dockerfile
+      - go.mod
+      - go.sum
+    branches-ignore:
+      - main
+      - master
+jobs:
+  derp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: skiff-sh/gh-actions/k3d-setup@master
+        name: Setup K3D
+      - uses: skiff-sh/gh-actions/k3d-registry-setup@master
+        name: Setup K3D registry
+        id: registry
+      - uses: skiff-sh/gh-actions/build-local-image@master
+        name: Build pilot
+        id: build
+        with:
+          host: ${{ steps.registry.outputs.host }}
+          image-name: 'pilot'
+      - name: E2E test
+        working-directory: e2e/pilot
+        env:
+          K3D_REGISTRY: ${{ steps.registry.outputs.host }}
+          PILOT_TEST_IMAGE: ${{ steps.build.outputs.tag }}
+        run: |
+          go test -v

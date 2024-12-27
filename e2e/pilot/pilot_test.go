@@ -3,6 +3,7 @@ package pilot
 import (
 	"context"
 	"fmt"
+	"github.com/skiff-sh/pilot/server/pkg/pilot"
 	"net/http"
 	"testing"
 	"time"
@@ -18,16 +19,16 @@ type TestPilotSuite struct {
 	ksuite.KubeSuite
 }
 
-func (t *TestPilotSuite) TestDeploy() {
+func (t *TestPilotSuite) TestE2E() {
 	type deps struct {
-		Cl  Client
+		Cl  pilot.Client
 		Ctx context.Context
 	}
 
 	type test struct {
 		ProvokeName  string
 		Constructor  func(d *deps) test
-		Conduct      func(ctx context.Context, cl Client) error
+		Conduct      func(ctx context.Context, cl pilot.Client) error
 		ExpectedFunc func()
 		ExpectedErr  string
 	}
@@ -51,11 +52,11 @@ func (t *TestPilotSuite) TestDeploy() {
 			ExpectedFunc: func() {
 				t.Equal("", ExpectWithin(&t.Suite, hit, 5*time.Second))
 			},
-			Conduct: func(ctx context.Context, cl Client) error {
+			Conduct: func(ctx context.Context, cl pilot.Client) error {
 				_, err := cl.NewBehavior().Name("request").
 					Tendency().
 					Action().
-					HTTPRequest(fmt.Sprintf("http://%s:8085/derp", t.Cluster.HostIP), WithHTTPHeader("hi", "there")).
+					HTTPRequest(fmt.Sprintf("http://%s:8085/derp", t.Cluster.HostIP), pilot.WithHTTPHeader("hi", "there")).
 					Add().
 					Send(ctx)
 				return err
@@ -78,7 +79,7 @@ func (t *TestPilotSuite) TestDeploy() {
 				v = v.Constructor(d)
 			}
 
-			err = Deploy(ctx, t.Kube, conf)
+			err = pilot.DeployK8s(ctx, t.Kube, conf)
 			if !t.NoError(err) {
 				return
 			}
@@ -88,7 +89,7 @@ func (t *TestPilotSuite) TestDeploy() {
 				return
 			}
 
-			cl, err := Connect(ctx, fmt.Sprintf("localhost:%d", t.Cluster.ExposedNodePort))
+			cl, err := pilot.Connect(ctx, fmt.Sprintf("localhost:%d", t.Cluster.ExposedNodePort))
 			if !t.NoError(err) {
 				return
 			}

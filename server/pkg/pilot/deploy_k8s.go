@@ -24,9 +24,6 @@ var (
 	DefaultContainerName     = "main"
 )
 
-func WaitUntilReady(ctx context.Context) {
-}
-
 func Connect(ctx context.Context, addr string) (Client, error) {
 	cc, err := grpc.NewClient(addr, serverapp.DefaultDialOpts()...)
 	if err != nil {
@@ -41,10 +38,10 @@ func Connect(ctx context.Context, addr string) (Client, error) {
 	return New(pilot.NewPilotServiceClient(cc)), nil
 }
 
-func Deploy(ctx context.Context, cl kubernetes.Interface, conf *config.Config) error {
+func DeployK8s(ctx context.Context, cl kubernetes.Interface, conf *config.Config) error {
 	evs := baseconfig.ToEnvVars("pilot", conf)
 	svc := newService(conf.Test.DeployName, conf.Test.Namespace)
-	dep := newDeployment(conf.Test.DeployName, conf.Test.Namespace, conf.Test.Image+":"+conf.Test.Tag, conf.Server.Addr.Port(), evs)
+	dep := newDeployment(conf.Test.DeployName, conf.Test.Namespace, conf.Test.Image, conf.Server.Addr.Port(), evs)
 	ns := newNamespace(conf.Test.DeployName)
 	co := metav1.CreateOptions{}
 	var err error
