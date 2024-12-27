@@ -5,6 +5,10 @@ on:
       - main
       - master
 jobs:
+  derp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: skiff-sh/gh-actions/go@master
   go-test:
     name: Go test
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
