@@ -50,7 +50,7 @@ func (t *TestPilotSuite) TestE2E() {
 		"http req": {
 			ProvokeName: "request",
 			ExpectedFunc: func() {
-				t.Equal("", ExpectWithin(&t.Suite, hit, 5*time.Second))
+				t.Equal("there", ExpectWithin(&t.Suite, hit, 5*time.Second))
 			},
 			Conduct: func(ctx context.Context, cl pilot.Client) error {
 				_, err := cl.NewBehavior().Name("request").
