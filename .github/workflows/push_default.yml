@@ -12,6 +12,10 @@ on:
       - Dockerfile
 
 jobs:
+  derp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: skiff-sh/gh-actions/go@master
   docker:
     name: Build and push
     uses: skiff-sh/gh-actions/.github/workflows/build-and-push.yml@master
