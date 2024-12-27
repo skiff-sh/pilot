@@ -8,7 +8,9 @@ jobs:
   derp:
     runs-on: ubuntu-latest
     steps:
-      - uses: skiff-sh/gh-actions/go@master
+      - uses: skiff-sh/gh-actions/k3d-setup@feat/remote_actions
+      - run: |
+          k3d registry create derp -p 0.0.0.0:8562
   go-test:
     name: Go test
     uses: skiff-sh/gh-actions/.github/workflows/go-test.yml@master
