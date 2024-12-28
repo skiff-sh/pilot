@@ -3,11 +3,12 @@ package behavior
 import (
 	"bytes"
 	"context"
-	"github.com/skiff-sh/pilot/pkg/testutil"
 	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/pkg/testutil"
 
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/template"
@@ -22,6 +23,7 @@ type ActionTestSuite struct {
 	suite.Suite
 }
 
+//nolint:funlen // just a long test
 func (a *ActionTestSuite) TestActions() {
 	type deps struct {
 		Output behaviortype.Output

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/skiff-sh/pilot/pkg/testutil"
-	"github.com/skiff-sh/pilot/server/pkg/pilot"
-	"google.golang.org/protobuf/types/known/structpb"
 	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/pkg/testutil"
+	"github.com/skiff-sh/pilot/server/pkg/pilot"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/skiff-sh/ksuite"
 	"github.com/skiff-sh/kube"
