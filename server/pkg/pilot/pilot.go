@@ -64,16 +64,12 @@ type CreateBehaviorSender interface {
 	Send(ctx context.Context) (*pilot.CreateBehavior_Response, error)
 }
 
-type TendencyAdder interface {
-	Add() CreateBehaviorSender
-}
-
 type TendencyActionBuilder interface {
-	Wait(d time.Duration) TendencyAdder
-	HTTPRequest(url string, o ...HTTPRequestOpt) TendencyAdder
-	SetStatus(code codes.Code, msg string) TendencyAdder
-	SetResponseField(from, to string) TendencyAdder
-	Exec(cmd string, o ...ExecOpt) TendencyAdder
+	Wait(d time.Duration) CreateBehaviorSender
+	HTTPRequest(url string, o ...HTTPRequestOpt) CreateBehaviorSender
+	SetStatus(code codes.Code, msg string) CreateBehaviorSender
+	SetResponseField(from, to string) CreateBehaviorSender
+	Exec(cmd string, o ...ExecOpt) CreateBehaviorSender
 }
 
 type HTTPRequestOpt func(r *pilot.Action_HTTPRequest)
@@ -156,7 +152,6 @@ func (c *createBehaviorBuilder) Name(n string) TendencyBuilder {
 
 var (
 	_ TendencyActionBuilder = &tendencyBuilder{}
-	_ TendencyAdder         = &tendencyBuilder{}
 	_ TendencyFieldBuilder  = &tendencyBuilder{}
 )
 
@@ -185,12 +180,13 @@ func (t *tendencyBuilder) Add() CreateBehaviorSender {
 	return t.Parent
 }
 
-func (t *tendencyBuilder) Wait(d time.Duration) TendencyAdder {
+func (t *tendencyBuilder) Wait(d time.Duration) CreateBehaviorSender {
 	t.Tendency.Action.Wait = durationpb.New(d)
-	return t
+	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
+	return t.Parent
 }
 
-func (t *tendencyBuilder) HTTPRequest(url string, o ...HTTPRequestOpt) TendencyAdder {
+func (t *tendencyBuilder) HTTPRequest(url string, o ...HTTPRequestOpt) CreateBehaviorSender {
 	t.Tendency.Action.HttpRequest = &pilot.Action_HTTPRequest{
 		Url:    url,
 		Method: http.MethodGet,
@@ -198,31 +194,35 @@ func (t *tendencyBuilder) HTTPRequest(url string, o ...HTTPRequestOpt) TendencyA
 	for _, v := range o {
 		v(t.Tendency.Action.HttpRequest)
 	}
-	return t
+	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
+	return t.Parent
 }
 
-func (t *tendencyBuilder) SetStatus(code codes.Code, msg string) TendencyAdder {
+func (t *tendencyBuilder) SetStatus(code codes.Code, msg string) CreateBehaviorSender {
 	t.Tendency.Action.SetStatus = &pilot.Action_SetStatus{
 		Code:    uint32(code),
 		Message: msg,
 	}
-	return t
+	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
+	return t.Parent
 }
 
-func (t *tendencyBuilder) SetResponseField(from, to string) TendencyAdder {
+func (t *tendencyBuilder) SetResponseField(from, to string) CreateBehaviorSender {
 	t.Tendency.Action.SetResponseField = &pilot.Action_SetResponseField{
 		From: from,
 		To:   to,
 	}
-	return t
+	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
+	return t.Parent
 }
 
-func (t *tendencyBuilder) Exec(cmd string, o ...ExecOpt) TendencyAdder {
+func (t *tendencyBuilder) Exec(cmd string, o ...ExecOpt) CreateBehaviorSender {
 	t.Tendency.Action.Exec = &pilot.Action_Exec{
 		Command: cmd,
 	}
 	for _, v := range o {
 		v(t.Tendency.Action.Exec)
 	}
-	return t
+	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
+	return t.Parent
 }

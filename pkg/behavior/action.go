@@ -42,6 +42,19 @@ func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 		var body io.Reader
 		if len(b.HttpRequest.Body) > 0 {
 			body = bytes.NewReader(b.HttpRequest.Body)
+			if b.HttpRequest.Headers == nil {
+				b.HttpRequest.Headers = make(map[string]string)
+			}
+			_, ok := b.HttpRequest.Headers["Content-Type"]
+			if !ok {
+				var contentType string
+				if v := bytes.TrimSpace(b.HttpRequest.Body); len(v) > 0 && v[0] == '{' {
+					contentType = "application/json"
+				} else {
+					contentType = http.DetectContentType(b.HttpRequest.Body)
+				}
+				b.HttpRequest.Headers["Content-Type"] = contentType
+			}
 		}
 		req, err := http.NewRequest(b.HttpRequest.Method, b.HttpRequest.Url, body)
 		if err != nil {

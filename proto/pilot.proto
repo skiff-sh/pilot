@@ -53,6 +53,9 @@ message Action {
     string url = 1 [(buf.validate.field).required = true];
     string method = 2 [(buf.validate.field).required = true];
     map<string, string> headers = 3;
+    // If set, it is recommended to define the Content-Type header. If it is not set,
+    // and the body is not empty, pilot will make its best guess as to what the
+    // Content-Type should be.
     bytes body = 4;
   }
 
