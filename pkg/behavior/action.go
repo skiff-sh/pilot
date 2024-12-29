@@ -3,6 +3,7 @@ package behavior
 import (
 	"bytes"
 	"errors"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"io"
 	"net/http"
 	"os/exec"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

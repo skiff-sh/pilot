@@ -2,12 +2,12 @@ package pilot
 
 import (
 	"context"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"net/http"
 	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config/ptr"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -31,7 +31,7 @@ type client struct {
 func (c *client) NewBehavior() NameBehaviorBuilder {
 	return &createBehaviorBuilder{
 		Req: &pilot.Behavior{},
-		Cl:  c.Cl,
+		Cl:  c,
 	}
 }
 
@@ -134,11 +134,11 @@ var (
 
 type createBehaviorBuilder struct {
 	Req *pilot.Behavior
-	Cl  pilot.PilotServiceClient
+	Cl  *client
 }
 
 func (c *createBehaviorBuilder) Send(ctx context.Context) (*pilot.CreateBehavior_Response, error) {
-	return c.Cl.CreateBehavior(ctx, &pilot.CreateBehavior_Request{Behavior: c.Req})
+	return c.Cl.Cl.CreateBehavior(ctx, &pilot.CreateBehavior_Request{Behavior: c.Req})
 }
 
 func (c *createBehaviorBuilder) Tendency() TendencyFieldBuilder {

@@ -2,12 +2,12 @@ package server
 
 import (
 	"context"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"log/slog"
 	"net"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/skiff-sh/config/contexts"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/skiff-sh/pilot/server/pkg/config"
 	"github.com/skiff-sh/pilot/server/pkg/controller"
 	"github.com/skiff-sh/serverapp"

@@ -3,12 +3,12 @@ package pilot
 import (
 	"context"
 	"fmt"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"time"
 
 	baseconfig "github.com/skiff-sh/config"
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/ksuite"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/skiff-sh/pilot/server/pkg/config"
 	"github.com/skiff-sh/serverapp"
 	"google.golang.org/grpc"

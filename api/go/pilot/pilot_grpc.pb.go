@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: pilot.proto
+// source: pilot/pilot.proto
 
 package pilot
 
@@ -153,5 +153,5 @@ var PilotService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pilot.proto",
+	Metadata: "pilot/pilot.proto",
 }

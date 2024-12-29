@@ -3,6 +3,7 @@ package behavior
 import (
 	"bytes"
 	"context"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"io"
 	"net/http"
 	"testing"
@@ -13,7 +14,6 @@ import (
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/template"
 
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"

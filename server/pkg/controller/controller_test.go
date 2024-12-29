@@ -3,13 +3,13 @@ package controller
 import (
 	"context"
 	"errors"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 
 	"github.com/bufbuild/protovalidate-go"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/mocks/behaviortypemocks"
 	"github.com/skiff-sh/pilot/pkg/protovalidatetype"
