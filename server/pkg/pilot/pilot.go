@@ -2,9 +2,10 @@ package pilot
 
 import (
 	"context"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"net/http"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config/ptr"

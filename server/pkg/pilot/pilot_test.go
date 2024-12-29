@@ -2,6 +2,10 @@ package pilot
 
 import (
 	"context"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/api/go/pilot"
 	"github.com/skiff-sh/pilot/pkg/mocks/pilotmocks"
@@ -10,9 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"net/http"
-	"testing"
-	"time"
 )
 
 type PilotTestSuite struct {
@@ -151,7 +152,6 @@ func (p *PilotTestSuite) TestBuilder() {
 				p.EqualError(err, v.ExpectedErr)
 				return
 			}
-
 		})
 	}
 }

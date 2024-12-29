@@ -3,9 +3,10 @@ package controller
 import (
 	"context"
 	"errors"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/brianvoe/gofakeit/v7"
 

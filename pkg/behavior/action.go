@@ -3,12 +3,13 @@ package behavior
 import (
 	"bytes"
 	"errors"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"io"
 	"net/http"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/httptype"

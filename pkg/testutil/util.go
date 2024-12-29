@@ -1,11 +1,12 @@
 package testutil
 
 import (
+	"time"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 )

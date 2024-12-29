@@ -3,11 +3,12 @@ package behavior
 import (
 	"bytes"
 	"context"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/skiff-sh/pilot/pkg/testutil"
 

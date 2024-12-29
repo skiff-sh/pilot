@@ -2,9 +2,10 @@ package behavior
 
 import (
 	"context"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"

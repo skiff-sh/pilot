@@ -3,8 +3,9 @@ package pilot
 import (
 	"context"
 	"fmt"
-	"github.com/skiff-sh/pilot/api/go/pilot"
 	"time"
+
+	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	baseconfig "github.com/skiff-sh/config"
 	"github.com/skiff-sh/config/ptr"
