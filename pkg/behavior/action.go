@@ -9,13 +9,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/httptype"
 	"github.com/skiff-sh/pilot/pkg/template"
 
 	"github.com/goccy/go-json"
 	"github.com/skiff-sh/config"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -40,12 +41,28 @@ func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 		return out, nil
 	case b.HttpRequest != nil:
 		var body io.Reader
-		if b.HttpRequest.Body != "" {
-			body = strings.NewReader(b.HttpRequest.Body)
+		if len(b.HttpRequest.Body) > 0 {
+			body = bytes.NewReader(b.HttpRequest.Body)
+			if b.HttpRequest.Headers == nil {
+				b.HttpRequest.Headers = make(map[string]string)
+			}
+			_, ok := b.HttpRequest.Headers["Content-Type"]
+			if !ok {
+				var contentType string
+				if v := bytes.TrimSpace(b.HttpRequest.Body); len(v) > 0 && v[0] == '{' {
+					contentType = "application/json"
+				} else {
+					contentType = http.DetectContentType(b.HttpRequest.Body)
+				}
+				b.HttpRequest.Headers["Content-Type"] = contentType
+			}
 		}
 		req, err := http.NewRequest(b.HttpRequest.Method, b.HttpRequest.Url, body)
 		if err != nil {
 			return nil, err
+		}
+		for k, v := range b.HttpRequest.Headers {
+			req.Header.Set(k, v)
 		}
 
 		out := &HTTPRequest{

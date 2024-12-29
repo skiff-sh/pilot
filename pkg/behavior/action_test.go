@@ -1,15 +1,20 @@
 package behavior
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
+	"github.com/skiff-sh/pilot/pkg/testutil"
+
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/template"
 
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -19,6 +24,7 @@ type ActionTestSuite struct {
 	suite.Suite
 }
 
+//nolint:funlen // just a long test
 func (a *ActionTestSuite) TestActions() {
 	type deps struct {
 		Output behaviortype.Output
@@ -40,6 +46,22 @@ func (a *ActionTestSuite) TestActions() {
 		ExpectedErr        string
 		ExpectedCompileErr string
 	}
+
+	httpHit := make(chan *http.Request, 1)
+	go func() {
+		http.HandleFunc("/test", func(writer http.ResponseWriter, request *http.Request) {
+			cl := request.Clone(request.Context())
+			body, _ := io.ReadAll(request.Body)
+			cl.Body = io.NopCloser(bytes.NewReader(body))
+			httpHit <- cl
+		})
+
+		server := &http.Server{
+			Addr:              ":8085",
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		_ = server.ListenAndServe()
+	}()
 
 	tests := map[string]test{
 		"exec happy": {
@@ -78,22 +100,25 @@ func (a *ActionTestSuite) TestActions() {
 		"http request happy": {
 			Given: &pilot.Action{
 				HttpRequest: &pilot.Action_HTTPRequest{
-					Url:    "https://google.com",
+					Url:    "http://localhost:8085/test",
 					Method: http.MethodGet,
 				},
 			},
 			ExpectedOutputFunc: func(d *deps) {
+				req := testutil.ExpectWithin(&a.Suite, httpHit, 5*time.Second)
+				if !a.NotNil(req) {
+					return
+				}
+
+				a.Equal(http.MethodGet, req.Method)
 				resp := d.Output.(*HTTPResponseOutput)
 				a.NotEmpty(resp.Headers)
-				a.NotZero(resp.ContentLength)
-				a.NotEmpty(resp.BodyRaw)
 				resp.Headers = nil
-				resp.BodyRaw = nil
-				resp.ContentLength = 0
 				exp := &pilot.Output_HTTPResponse{
 					Status:     200,
-					Proto:      "HTTP/2.0",
-					ProtoMajor: 2,
+					Proto:      "HTTP/1.1",
+					ProtoMajor: 1,
+					ProtoMinor: 1,
 				}
 				a.Equal(exp.String(), resp.Output_HTTPResponse.String())
 			},
@@ -101,14 +126,23 @@ func (a *ActionTestSuite) TestActions() {
 		"http request json": {
 			Given: &pilot.Action{
 				HttpRequest: &pilot.Action_HTTPRequest{
-					Url:    "https://api.github.com/repos/skiff-sh/pilot",
-					Method: http.MethodGet,
+					Url:    "http://localhost:8085/test",
+					Method: http.MethodPost,
+					Body:   []byte(`{"hello":"there"}`),
 				},
 			},
 			ExpectedOutputFunc: func(d *deps) {
-				resp := d.Output.(*HTTPResponseOutput)
-				id := resp.Body.AsMap()["name"]
-				a.Equal("pilot", id)
+				req := testutil.ExpectWithin(&a.Suite, httpHit, 5*time.Second)
+				if !a.NotNil(req) {
+					return
+				}
+
+				body, err := io.ReadAll(req.Body)
+				if !a.NoError(err) {
+					return
+				}
+				a.Equal(http.MethodPost, req.Method)
+				a.Equal(`{"hello":"there"}`, string(body))
 			},
 		},
 		"set status happy": {

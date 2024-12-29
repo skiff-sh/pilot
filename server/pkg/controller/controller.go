@@ -3,12 +3,13 @@ package controller
 import (
 	"context"
 
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
 	"github.com/skiff-sh/pilot/pkg/behavior"
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/protovalidatetype"
 
 	"github.com/orcaman/concurrent-map/v2"
-	"github.com/skiff-sh/pilot/api/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

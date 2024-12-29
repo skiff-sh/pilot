@@ -3,7 +3,7 @@
 package behaviortypemocks
 
 import (
-	pilot "github.com/skiff-sh/pilot/api/go"
+	pilot "github.com/skiff-sh/pilot/api/go/pilot"
 	mock "github.com/stretchr/testify/mock"
 
 	template "github.com/skiff-sh/pilot/pkg/template"

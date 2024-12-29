@@ -3,7 +3,8 @@ package behaviortype
 import (
 	"context"
 
-	pilot "github.com/skiff-sh/pilot/api/go"
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
 	"github.com/skiff-sh/pilot/pkg/template"
 	"google.golang.org/grpc/status"
 )

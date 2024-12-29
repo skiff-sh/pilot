@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/template"
-
-	pilot "github.com/skiff-sh/pilot/api/go"
 )
 
 func Compile(beh *pilot.Behavior) (*Behavior, error) {

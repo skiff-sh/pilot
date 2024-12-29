@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skiff-sh/pilot/api/go/pilot"
+
 	"github.com/skiff-sh/config/ptr"
-	pilot "github.com/skiff-sh/pilot/api/go"
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/mocks/behaviortypemocks"
 	"github.com/skiff-sh/pilot/pkg/mocks/templatemocks"

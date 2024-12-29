@@ -1,7 +1,7 @@
 package behavior
 
 import (
-	pilot "github.com/skiff-sh/pilot/api/go"
+	"github.com/skiff-sh/pilot/api/go/pilot"
 	"github.com/skiff-sh/pilot/pkg/behavior/behaviortype"
 	"github.com/skiff-sh/pilot/pkg/template"
 )
