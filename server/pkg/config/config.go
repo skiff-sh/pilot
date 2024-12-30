@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Log    config.Log    `koanf:"log" yaml:"log" json:"log"`
-	Server config.Server `koanf:"server" yaml:"server" json:"server"`
-	Test   Test          `koanf:"test" yaml:"test" json:"test"`
+	Log  config.Log    `koanf:"log" yaml:"log" json:"log"`
+	GRPC config.Server `koanf:"grpc" yaml:"grpc" json:"grpc"`
+	HTTP config.Server `koanf:"http" yaml:"http" json:"http"`
+	Test Test          `koanf:"test" yaml:"test" json:"test"`
 }
 
 // Test defines config that's only relevant in E2E tests.
@@ -37,8 +38,11 @@ func Default() *Config {
 			Level:   slog.LevelInfo.String(),
 			Outputs: "stdout",
 		},
-		Server: config.Server{
+		GRPC: config.Server{
 			Addr: ":8080",
+		},
+		HTTP: config.Server{
+			Addr: ":8081",
 		},
 		Test: Test{
 			Image:      "ghcr.io/skiff-sh/pilot:latest",

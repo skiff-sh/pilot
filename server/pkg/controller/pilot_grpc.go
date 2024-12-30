@@ -14,24 +14,24 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ pilot.PilotServiceServer = &Controller{}
+var _ pilot.PilotServiceServer = &PilotGRPC{}
 
-func NewController(val protovalidatetype.Validator) *Controller {
-	out := &Controller{
-		Behaviors: cmap.New[behaviortype.Interface](),
+func NewPilotGRPC(val protovalidatetype.Validator, store cmap.ConcurrentMap[string, behaviortype.Interface]) *PilotGRPC {
+	out := &PilotGRPC{
+		Behaviors: store,
 		Validator: val,
 	}
 
 	return out
 }
 
-type Controller struct {
+type PilotGRPC struct {
 	Behaviors cmap.ConcurrentMap[string, behaviortype.Interface]
 	Validator protovalidatetype.Validator
 }
 
-func (c *Controller) CreateBehavior(_ context.Context, request *pilot.CreateBehavior_Request) (*pilot.CreateBehavior_Response, error) {
-	err := c.Validator.Validate(request)
+func (p *PilotGRPC) CreateBehavior(_ context.Context, request *pilot.CreateBehavior_Request) (*pilot.CreateBehavior_Response, error) {
+	err := p.Validator.Validate(request)
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +41,18 @@ func (c *Controller) CreateBehavior(_ context.Context, request *pilot.CreateBeha
 		return nil, err
 	}
 
-	c.Behaviors.Set(request.Behavior.Name, beh)
+	p.Behaviors.Set(request.Behavior.Name, beh)
 
 	return &pilot.CreateBehavior_Response{}, nil
 }
 
-func (c *Controller) ProvokeBehavior(ctx context.Context, request *pilot.ProvokeBehavior_Request) (*pilot.ProvokeBehavior_Response, error) {
-	err := c.Validator.Validate(request)
+func (p *PilotGRPC) ProvokeBehavior(ctx context.Context, request *pilot.ProvokeBehavior_Request) (*pilot.ProvokeBehavior_Response, error) {
+	err := p.Validator.Validate(request)
 	if err != nil {
 		return nil, err
 	}
 
-	beh, ok := c.Behaviors.Get(request.GetName())
+	beh, ok := p.Behaviors.Get(request.GetName())
 	if !ok {
 		return nil, status.Newf(codes.NotFound, "behavior %s not found", request.GetName()).Err()
 	}

@@ -2,8 +2,12 @@ package pilot
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"time"
+
+	"github.com/skiff-sh/pilot/pkg/httptype"
+	"github.com/skiff-sh/pilot/server/pkg/protoenc"
 
 	"github.com/skiff-sh/pilot/api/go/pilot"
 
@@ -16,17 +20,32 @@ import (
 
 type Client interface {
 	NewBehavior() NameBehaviorBuilder
+	GRPC() Provoker
+	HTTP() Provoker
+}
+
+type Provoker interface {
 	Provoke(ctx context.Context, name string) (*structpb.Struct, error)
 }
 
-func New(cl pilot.PilotServiceClient) Client {
+func New(cl pilot.PilotServiceClient, httpProv Provoker) Client {
 	return &client{
-		Cl: cl,
+		HTTPProvoker: httpProv,
+		Cl:           cl,
 	}
 }
 
 type client struct {
-	Cl pilot.PilotServiceClient
+	HTTPProvoker Provoker
+	Cl           pilot.PilotServiceClient
+}
+
+func (c *client) HTTP() Provoker {
+	return c.HTTPProvoker
+}
+
+func (c *client) GRPC() Provoker {
+	return NewGRPC(c.Cl)
 }
 
 func (c *client) NewBehavior() NameBehaviorBuilder {
@@ -34,15 +53,6 @@ func (c *client) NewBehavior() NameBehaviorBuilder {
 		Req: &pilot.Behavior{},
 		Cl:  c,
 	}
-}
-
-func (c *client) Provoke(ctx context.Context, name string) (*structpb.Struct, error) {
-	out, err := c.Cl.ProvokeBehavior(ctx, &pilot.ProvokeBehavior_Request{Name: name})
-	if err != nil {
-		return nil, err
-	}
-
-	return out.Body, nil
 }
 
 type NameBehaviorBuilder interface {
@@ -226,4 +236,69 @@ func (t *tendencyBuilder) Exec(cmd string, o ...ExecOpt) CreateBehaviorSender {
 	}
 	t.Parent.Req.Tendencies = append(t.Parent.Req.Tendencies, t.Tendency)
 	return t.Parent
+}
+
+func NewGRPC(cl pilot.PilotServiceClient) Provoker {
+	out := &grpcProvoker{
+		Cl: cl,
+	}
+
+	return out
+}
+
+type grpcProvoker struct {
+	Cl pilot.PilotServiceClient
+}
+
+func (g *grpcProvoker) Provoke(ctx context.Context, name string) (*structpb.Struct, error) {
+	resp, err := g.Cl.ProvokeBehavior(ctx, &pilot.ProvokeBehavior_Request{
+		Name: name,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.GetBody(), nil
+}
+
+func NewHTTP(addr string, doer httptype.HttpDoer) Provoker {
+	out := &httpProvoker{
+		Cl:          doer,
+		ProvokerURL: addr + "/api/v1/provoke",
+	}
+	return out
+}
+
+type httpProvoker struct {
+	Cl          httptype.HttpDoer
+	ProvokerURL string
+}
+
+func (h *httpProvoker) Provoke(ctx context.Context, name string) (*structpb.Struct, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, h.ProvokerURL+"/"+name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.Cl.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(b io.ReadCloser) {
+		_ = b.Close()
+	}(resp.Body)
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	payload := new(pilot.ProvokeBehavior_Response)
+	err = protoenc.ProtoUnmarshaller.Unmarshal(b, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload.GetBody(), nil
 }

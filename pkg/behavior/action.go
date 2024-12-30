@@ -2,6 +2,7 @@ package behavior
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -24,51 +25,29 @@ import (
 func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 	switch {
 	case b.Exec != nil:
-		out := &Exec{
-			ID:     id,
-			Stderr: bytes.NewBuffer(nil),
-			Stdout: bytes.NewBuffer(nil),
-		}
-		//nolint: gosec // can add support to disable this action.
-		out.Cmd = exec.Command(b.Exec.Command, b.Exec.Args...)
-		if out.Cmd.Err != nil {
-			return nil, out.Cmd.Err
-		}
-
-		out.Cmd.Stderr, out.Cmd.Stdout = out.Stderr, out.Stdout
-		out.Cmd.Dir = b.Exec.WorkingDir
-		out.Cmd.Env = config.NewMap(b.Exec.EnvVars).ToEnv()
-		return out, nil
-	case b.HttpRequest != nil:
-		var body io.Reader
-		if len(b.HttpRequest.Body) > 0 {
-			body = bytes.NewReader(b.HttpRequest.Body)
-			if b.HttpRequest.Headers == nil {
-				b.HttpRequest.Headers = make(map[string]string)
-			}
-			_, ok := b.HttpRequest.Headers["Content-Type"]
-			if !ok {
-				var contentType string
-				if v := bytes.TrimSpace(b.HttpRequest.Body); len(v) > 0 && v[0] == '{' {
-					contentType = "application/json"
-				} else {
-					contentType = http.DetectContentType(b.HttpRequest.Body)
-				}
-				b.HttpRequest.Headers["Content-Type"] = contentType
-			}
-		}
-		req, err := http.NewRequest(b.HttpRequest.Method, b.HttpRequest.Url, body)
+		// validate that the command is valid.
+		_, _, _, err := newCmd(context.TODO(), b.Exec)
 		if err != nil {
 			return nil, err
 		}
-		for k, v := range b.HttpRequest.Headers {
-			req.Header.Set(k, v)
+		out := &Exec{
+			ID:   id,
+			Spec: b.Exec,
 		}
+		return out, nil
+	case b.HttpRequest != nil:
+		// validate that the request will be valid.
+		req, err := newHTTPRequest(context.TODO(), b.HttpRequest)
+		if err != nil {
+			return nil, err
+		}
+		defer func(body io.ReadCloser) {
+			_ = body.Close()
+		}(req.Body)
 
 		out := &HTTPRequest{
 			ID:     id,
 			Spec:   b.HttpRequest,
-			Req:    req,
 			Client: http.DefaultClient,
 		}
 		return out, nil
@@ -102,7 +81,6 @@ var (
 type HTTPRequest struct {
 	ID     string
 	Spec   *pilot.Action_HTTPRequest
-	Req    *http.Request
 	Client httptype.HttpDoer
 }
 
@@ -110,8 +88,12 @@ func (h *HTTPRequest) GetID() string {
 	return h.ID
 }
 
-func (h *HTTPRequest) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
-	resp, err := h.Client.Do(h.Req)
+func (h *HTTPRequest) Act(c *behaviortype.Context) (behaviortype.Output, error) {
+	req, err := newHTTPRequest(c, h.Spec)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := h.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -189,21 +171,24 @@ var (
 )
 
 type Exec struct {
-	ID     string
-	Cmd    *exec.Cmd
-	Stdout *bytes.Buffer
-	Stderr *bytes.Buffer
+	ID   string
+	Spec *pilot.Action_Exec
 }
 
 func (e *Exec) GetID() string {
 	return e.ID
 }
 
-func (e *Exec) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
-	err := e.Cmd.Run()
+func (e *Exec) Act(c *behaviortype.Context) (behaviortype.Output, error) {
+	cmd, stdout, stderr, err := newCmd(c, e.Spec)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cmd.Run()
 	out := &pilot.Output_ExecOutput{
-		Stdout: e.Stdout.String(),
-		Stderr: e.Stderr.String(),
+		Stdout: stdout.String(),
+		Stderr: stderr.String(),
 	}
 	var v *exec.ExitError
 	if errors.As(err, &v) {
@@ -211,7 +196,7 @@ func (e *Exec) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
 	}
 
 	if err != nil {
-		err = errors.Join(err, errors.New(e.Stderr.String()))
+		err = errors.Join(err, errors.New(stderr.String()))
 	}
 
 	return &ExecOutput{Output_ExecOutput: out}, err
@@ -229,4 +214,48 @@ var sleeperFunc = time.Sleep
 func (w *Wait) Act(_ *behaviortype.Context) (behaviortype.Output, error) {
 	sleeperFunc(w.Dur)
 	return nil, nil
+}
+
+func newHTTPRequest(ctx context.Context, spec *pilot.Action_HTTPRequest) (*http.Request, error) {
+	var body io.Reader
+	if len(spec.Body) > 0 {
+		body = bytes.NewReader(spec.Body)
+		if spec.Headers == nil {
+			spec.Headers = make(map[string]string)
+		}
+		_, ok := spec.Headers["Content-Type"]
+		if !ok {
+			var contentType string
+			if v := bytes.TrimSpace(spec.Body); len(v) > 0 && v[0] == '{' {
+				contentType = "application/json"
+			} else {
+				contentType = http.DetectContentType(spec.Body)
+			}
+			spec.Headers["Content-Type"] = contentType
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, spec.Method, spec.Url, body)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range spec.Headers {
+		req.Header.Set(k, v)
+	}
+
+	return req, nil
+}
+
+func newCmd(ctx context.Context, spec *pilot.Action_Exec) (cmd *exec.Cmd, stdout, stderr *bytes.Buffer, err error) {
+	stdout, stderr = bytes.NewBuffer(nil), bytes.NewBuffer(nil)
+	//nolint: gosec // can add support to disable this action.
+	cmd = exec.CommandContext(ctx, spec.Command, spec.Args...)
+	if cmd.Err != nil {
+		return nil, nil, nil, cmd.Err
+	}
+
+	cmd.Stderr, cmd.Stdout = stderr, stdout
+	cmd.Dir = spec.WorkingDir
+	cmd.Env = config.NewMap(spec.EnvVars).ToEnv()
+	return cmd, stdout, stderr, nil
 }

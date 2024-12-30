@@ -3,9 +3,10 @@ package template
 import (
 	"strings"
 
+	"github.com/skiff-sh/pilot/server/pkg/protoenc"
+
 	"github.com/flosch/pongo2/v6"
 	"github.com/goccy/go-json"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -98,19 +99,8 @@ func IsTruthy(a any) bool {
 	return false
 }
 
-var (
-	ProtoMarshaller = &protojson.MarshalOptions{
-		AllowPartial: true,
-	}
-
-	ProtoUnmarshaller = &protojson.UnmarshalOptions{
-		AllowPartial:   true,
-		DiscardUnknown: true,
-	}
-)
-
 func unmarshalProtoMessage(msg proto.Message) (Data, error) {
-	b, err := ProtoMarshaller.Marshal(msg)
+	b, err := protoenc.ProtoMarshaller.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
