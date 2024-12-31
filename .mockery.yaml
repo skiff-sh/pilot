@@ -8,5 +8,6 @@ dir: "pkg/mocks/{{ .PackageName }}mocks"
 packages:
   github.com/skiff-sh/pilot/pkg/protovalidatetype: { }
   github.com/skiff-sh/pilot/pkg/behavior/behaviortype: { }
+  github.com/skiff-sh/pilot/pkg/httptype: { }
   github.com/skiff-sh/pilot/pkg/template: { }
   github.com/skiff-sh/pilot/api/go/pilot: { }
