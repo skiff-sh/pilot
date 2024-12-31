@@ -284,7 +284,6 @@ func (h *httpProvoker) Provoke(ctx context.Context, name string) (*structpb.Stru
 	if err != nil {
 		return nil, err
 	}
-
 	defer func(b io.ReadCloser) {
 		_ = b.Close()
 	}(resp.Body)
