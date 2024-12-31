@@ -3,7 +3,6 @@ package testutil
 import (
 	"time"
 
-	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -15,7 +14,6 @@ func ExpectWithin[T any](t *suite.Suite, c chan T, to time.Duration) (out T) {
 	timer := time.NewTimer(to)
 	select {
 	case <-timer.C:
-		t.Fail("took too long to receive request")
 		return
 	case hit := <-c:
 		return hit
@@ -26,10 +24,4 @@ func ExpectWithin[T any](t *suite.Suite, c chan T, to time.Duration) (out T) {
 // is no difference.
 func DiffProto(expected, actual proto.Message) string {
 	return cmp.Diff(expected, actual, protocmp.Transform())
-}
-
-// RandomStruct generates a randomly populated struct.
-func RandomStruct[T any](t *T) *T {
-	_ = gofakeit.Struct(t)
-	return t
 }

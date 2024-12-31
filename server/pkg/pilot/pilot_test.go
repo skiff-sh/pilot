@@ -1,10 +1,15 @@
 package pilot
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/pkg/mocks/httptypemocks"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/api/go/pilot"
@@ -152,6 +157,86 @@ func (p *PilotTestSuite) TestBuilder() {
 				p.EqualError(err, v.ExpectedErr)
 				return
 			}
+		})
+	}
+}
+
+func (p *PilotTestSuite) TestProvoke() {
+	type deps struct {
+		GRPC *pilotmocks.PilotServiceClient
+		HTTP *httptypemocks.HttpDoer
+	}
+
+	addr := "http://localhost:9090"
+	type test struct {
+		Name        string
+		Constructor func(d *deps) test
+		ExpectedErr string
+		Expected    *structpb.Struct
+		HTTP        bool
+	}
+
+	tests := map[string]test{
+		"grpc blank response": {
+			Constructor: func(d *deps) test {
+				d.GRPC.EXPECT().ProvokeBehavior(mock.Anything, &pilot.ProvokeBehavior_Request{Name: "name"}).Return(nil, nil)
+				return test{
+					Name: "name",
+				}
+			},
+		},
+		"grpc populated response": {
+			Constructor: func(d *deps) test {
+				exp := &pilot.ProvokeBehavior_Response{Body: &structpb.Struct{}}
+				d.GRPC.EXPECT().ProvokeBehavior(mock.Anything, &pilot.ProvokeBehavior_Request{Name: "name"}).Return(exp, nil)
+				return test{
+					Name:     "name",
+					Expected: exp.GetBody(),
+				}
+			},
+		},
+		"http response": {
+			Constructor: func(d *deps) test {
+				d.HTTP.EXPECT().Do(mock.MatchedBy(func(req *http.Request) bool {
+					return p.Equal(req.Method, http.MethodPost) && p.Equal(req.URL.String(), addr+"/api/v1/provoke/name")
+				})).Return(&http.Response{Body: io.NopCloser(bytes.NewBuffer([]byte(`{}`)))}, nil)
+				return test{
+					Name: "name",
+					HTTP: true,
+				}
+			},
+		},
+	}
+
+	for desc, v := range tests {
+		p.Run(desc, func() {
+			g := new(pilotmocks.PilotServiceClient)
+			h := new(httptypemocks.HttpDoer)
+
+			ctx := context.TODO()
+			htt := NewHTTP(addr, h)
+			cl := New(g, htt)
+
+			if v.Constructor != nil {
+				v = v.Constructor(&deps{
+					GRPC: g,
+					HTTP: h,
+				})
+			}
+
+			var out *structpb.Struct
+			var err error
+			if v.HTTP {
+				out, err = cl.HTTP().Provoke(ctx, v.Name)
+			} else {
+				out, err = cl.GRPC().Provoke(ctx, v.Name)
+			}
+			if v.ExpectedErr != "" || !p.NoError(err) {
+				p.EqualError(err, v.ExpectedErr)
+				return
+			}
+
+			p.Empty(testutil.DiffProto(v.Expected, out))
 		})
 	}
 }

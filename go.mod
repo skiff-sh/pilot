@@ -10,7 +10,7 @@ require (
 	github.com/goccy/go-json v0.10.4
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/skiff-sh/config v0.0.0-20241218203813-c1c6448383ea
-	github.com/skiff-sh/ksuite v0.0.0-20241227044845-54e690d3f40e
+	github.com/skiff-sh/ksuite v0.0.0-20241230042958-db8da0684a51
 	github.com/skiff-sh/kube v0.0.0-20241227045700-53e479efa02a
 	github.com/skiff-sh/serverapp v0.0.0-20241223210610-75f704a4a2d6
 	github.com/stretchr/testify v1.10.0
@@ -25,6 +25,7 @@ require (
 	cel.dev/expr v0.19.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -56,6 +57,8 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-test/deep v1.1.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/gofiber/fiber/v3 v3.0.0-beta.3 // indirect
+	github.com/gofiber/utils/v2 v2.0.0-beta.7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/goodhosts/hostsfile v0.1.6 // indirect
@@ -87,6 +90,8 @@ require (
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -124,6 +129,9 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.58.0 // indirect
+	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vbatts/tar-split v0.11.6 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect

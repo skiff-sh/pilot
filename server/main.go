@@ -29,7 +29,7 @@ func main() {
 
 	ctx := context.TODO()
 	ctx = contexts.WithLogger(ctx, logger)
-	logger.Info("Server started.", slog.String("addr", conf.Server.Addr.String()))
+	logger.Info("GRPC started.", slog.String("addr", conf.GRPC.Addr.String()))
 	err = srv.Start(ctx)
 	if err != nil {
 		logger.Error("Failed to start server.", slog.String("err", err.Error()))

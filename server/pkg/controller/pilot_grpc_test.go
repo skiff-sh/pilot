@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	cmap "github.com/orcaman/concurrent-map/v2"
+
 	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -34,7 +36,7 @@ func (c *ControllerTestSuite) TestCreateBehavior() {
 	type test struct {
 		Given        *pilot.CreateBehavior_Request
 		ExpectedErr  string
-		ExpectedFunc func(c *Controller)
+		ExpectedFunc func(c *PilotGRPC)
 		Constructor  func(d *deps) test
 	}
 
@@ -54,7 +56,7 @@ func (c *ControllerTestSuite) TestCreateBehavior() {
 							Name: "derp",
 						},
 					},
-					ExpectedFunc: func(con *Controller) {
+					ExpectedFunc: func(con *PilotGRPC) {
 						c.Equal(1, len(con.Behaviors.Keys()))
 					},
 				}
@@ -77,7 +79,7 @@ func (c *ControllerTestSuite) TestCreateBehavior() {
 				v = v.Constructor(d)
 			}
 
-			con := NewController(d.Val)
+			con := NewPilotGRPC(d.Val, cmap.New[behaviortype.Interface]())
 			ctx := context.TODO()
 			_, err := con.CreateBehavior(ctx, v.Given)
 			if v.ExpectedErr != "" || !c.NoError(err) {
@@ -179,7 +181,7 @@ func (c *ControllerTestSuite) TestProvokeBehavior() {
 				v = v.Constructor(d)
 			}
 
-			con := NewController(d.Val)
+			con := NewPilotGRPC(d.Val, cmap.New[behaviortype.Interface]())
 			con.Behaviors.Set(v.Given.GetName(), v.Given)
 			ctx := context.TODO()
 			actual, err := con.ProvokeBehavior(ctx, &pilot.ProvokeBehavior_Request{Name: v.GivenName})

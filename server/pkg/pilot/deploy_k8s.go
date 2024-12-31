@@ -3,13 +3,13 @@ package pilot
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/skiff-sh/pilot/api/go/pilot"
 
 	baseconfig "github.com/skiff-sh/config"
 	"github.com/skiff-sh/config/ptr"
-	"github.com/skiff-sh/ksuite"
 	"github.com/skiff-sh/pilot/server/pkg/config"
 	"github.com/skiff-sh/serverapp"
 	"google.golang.org/grpc"
@@ -21,28 +21,57 @@ import (
 )
 
 var (
-	DefaultContainerPortName = "main"
-	DefaultContainerName     = "main"
+	DefaultGRPCPortName  = "grpc"
+	DefaultHTTPPortName  = "http"
+	DefaultContainerName = "main"
+	DefaultGRPCPort      = int32(81)
+	DefaultHTTPPort      = int32(80)
 )
 
-func Connect(ctx context.Context, addr string) (Client, error) {
-	cc, err := grpc.NewClient(addr, serverapp.DefaultDialOpts()...)
+func Connect(ctx context.Context, grpcAddr, httpAddr string) (Client, error) {
+	cc, err := grpc.NewClient(grpcAddr, serverapp.DefaultDialOpts()...)
 	if err != nil {
 		return nil, err
 	}
 
-	err = serverapp.WaitUntilReady(ctx, addr, 30*time.Second)
+	err = serverapp.WaitUntilReady(ctx, grpcAddr, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
-	return New(pilot.NewPilotServiceClient(cc)), nil
+	httpCl := *http.DefaultClient
+	httpCl.Timeout = 5 * time.Second
+
+	return New(pilot.NewPilotServiceClient(cc), NewHTTP(httpAddr, &httpCl)), nil
 }
 
-func DeployK8s(ctx context.Context, cl kubernetes.Interface, conf *config.Config) error {
+type DeployOpts struct {
+	GRPCNodePort int32
+	HTTPNodePort int32
+}
+
+type DeployOpt func(o *DeployOpts)
+
+func WithExposeGRPCNodePort(port uint16) DeployOpt {
+	return func(o *DeployOpts) {
+		o.GRPCNodePort = int32(port)
+	}
+}
+
+func WithExposeHTTPNodePort(port uint16) DeployOpt {
+	return func(o *DeployOpts) {
+		o.HTTPNodePort = int32(port)
+	}
+}
+
+func DeployK8s(ctx context.Context, cl kubernetes.Interface, conf *config.Config, o ...DeployOpt) error {
+	op := &DeployOpts{}
+	for _, v := range o {
+		v(op)
+	}
 	evs := baseconfig.ToEnvVars("pilot", conf)
-	svc := newService(conf.Test.DeployName, conf.Test.Namespace)
-	dep := newDeployment(conf.Test.DeployName, conf.Test.Namespace, conf.Test.Image, conf.Server.Addr.Port(), evs)
+	svc := newService(conf.Test.DeployName, conf.Test.Namespace, op.GRPCNodePort, op.HTTPNodePort)
+	dep := newDeployment(conf.Test.DeployName, conf.Test.Namespace, conf.Test.Image, conf.GRPC.Addr.Port(), conf.HTTP.Addr.Port(), evs)
 	ns := newNamespace(conf.Test.DeployName)
 	co := metav1.CreateOptions{}
 	var err error
@@ -74,7 +103,7 @@ func newNamespace(name string) *corev1.Namespace {
 	return out
 }
 
-func newService(name, namespace string) *corev1.Service {
+func newService(name, namespace string, grpcNodePort, httpNodePort int32) *corev1.Service {
 	out := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -86,10 +115,16 @@ func newService(name, namespace string) *corev1.Service {
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
 				{
-					Name:       DefaultContainerPortName,
-					Port:       80,
-					NodePort:   int32(ksuite.InternalNodePort),
-					TargetPort: intstr.FromString(DefaultContainerPortName),
+					Name:       DefaultGRPCPortName,
+					Port:       DefaultGRPCPort,
+					NodePort:   grpcNodePort,
+					TargetPort: intstr.FromString(DefaultGRPCPortName),
+				},
+				{
+					Name:       DefaultHTTPPortName,
+					Port:       DefaultHTTPPort,
+					NodePort:   httpNodePort,
+					TargetPort: intstr.FromString(DefaultHTTPPortName),
 				},
 			},
 			Selector: map[string]string{
@@ -101,7 +136,7 @@ func newService(name, namespace string) *corev1.Service {
 	return out
 }
 
-func newDeployment(name, namespace, image string, containerPort uint16, envVars map[string]string) *appsv1.Deployment {
+func newDeployment(name, namespace, image string, grpcPort, httpPort uint16, envVars map[string]string) *appsv1.Deployment {
 	evs := make([]corev1.EnvVar, 0, len(envVars))
 	for k, v := range envVars {
 		evs = append(evs, corev1.EnvVar{
@@ -110,7 +145,7 @@ func newDeployment(name, namespace, image string, containerPort uint16, envVars 
 		})
 	}
 
-	probe := newProbe(containerPort)
+	grpcProbe := newProbe(grpcPort)
 
 	out := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -140,13 +175,17 @@ func newDeployment(name, namespace, image string, containerPort uint16, envVars 
 							Image: image,
 							Ports: []corev1.ContainerPort{
 								{
-									Name:          DefaultContainerPortName,
-									ContainerPort: int32(containerPort),
+									Name:          DefaultGRPCPortName,
+									ContainerPort: int32(grpcPort),
+								},
+								{
+									Name:          DefaultHTTPPortName,
+									ContainerPort: int32(httpPort),
 								},
 							},
 							Env:            evs,
-							LivenessProbe:  probe,
-							ReadinessProbe: probe,
+							LivenessProbe:  grpcProbe,
+							ReadinessProbe: grpcProbe,
 						},
 					},
 				},
