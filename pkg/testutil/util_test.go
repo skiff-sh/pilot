@@ -1,12 +1,13 @@
 package testutil
 
 import (
+	"testing"
+	"time"
+
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/api/go/pilot"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/proto"
-	"testing"
-	"time"
 )
 
 type UtilTestSuite struct {

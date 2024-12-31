@@ -3,12 +3,13 @@ package pilot
 import (
 	"bytes"
 	"context"
-	"github.com/skiff-sh/pilot/pkg/mocks/httptypemocks"
-	"google.golang.org/protobuf/types/known/structpb"
 	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/skiff-sh/pilot/pkg/mocks/httptypemocks"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/skiff-sh/config/ptr"
 	"github.com/skiff-sh/pilot/api/go/pilot"

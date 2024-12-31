@@ -2,11 +2,12 @@ package pilot
 
 import (
 	"context"
+	"testing"
+
 	"github.com/skiff-sh/pilot/server/pkg/config"
 	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 type DeployK8STestSuite struct {
