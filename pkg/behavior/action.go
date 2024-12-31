@@ -37,18 +37,18 @@ func CompileAction(id string, b *pilot.Action) (behaviortype.Action, error) {
 		return out, nil
 	case b.HttpRequest != nil:
 		// validate that the request will be valid.
-		req, err := newHTTPRequest(context.TODO(), b.HttpRequest)
+		_, err := newHTTPRequest(context.TODO(), b.HttpRequest)
 		if err != nil {
 			return nil, err
 		}
-		defer func(body io.ReadCloser) {
-			_ = body.Close()
-		}(req.Body)
+
+		cl := *http.DefaultClient
+		cl.Timeout = 5 * time.Second
 
 		out := &HTTPRequest{
 			ID:     id,
 			Spec:   b.HttpRequest,
-			Client: http.DefaultClient,
+			Client: &cl,
 		}
 		return out, nil
 	case b.SetStatus != nil:
